@@ -1,0 +1,58 @@
+# hashmap源码实现及其使用分析
+## hashmap 储存结构
+## 常量、成员变量
+## 构造函数
+## 关键方法
+### 准备工作
+#### hashcode获取
+#### tablesizefor 任何数转2幂次方
+#### 红黑树
+  1. 特征
+      - 节点不是红就是黑
+      - 根节点与叶子节点都为黑色（叶子结点是指空节点）
+      - 红色节点下为2个黑色
+      - 任意一个节点到另一个节点的黑色相同（黑亮）
+  2. 优点
+      - 类似于平衡二叉树，所以查找、插入效率提高
+      - 对二叉树进行的简化使查找、插入更加方便
+  3. 调整
+      - 颜色调整：变化颜色（==其中插入时都为红色 防止违反特征最后一条==）
+      - 结构调整：左旋 右旋(==红黑树的左右旋是比较重要的操作，左右旋的目的是调整红黑节点结构，转移黑色节点位置，使其在进行插入、删除后仍能保持红黑树的 5 条性质==)
+        - 详细调整介绍
+          - [详细分析很详细清晰](https://www.cnblogs.com/yinbiao/p/10732600.html)
+  4. TreeNode 类
+      ```java
+      static final class TreeNode<K,V> extends LinkedHashMap.Entry<K,V> {
+          // 父节点
+          TreeNode<K,V> parent;  // red-black tree links
+          // 左子节点
+          TreeNode<K,V> left;
+          // 右子节点
+          TreeNode<K,V> right;
+          // 前节点
+          TreeNode<K,V> prev;    // needed to unlink next upon deletion
+          boolean red;//是否为红色
+          TreeNode(int hash, K key, V val, Node<K,V> next) {
+              super(hash, key, val, next);
+          }
+          ...
+        }
+      ```
+  5.
+### 源码分析
+#### put
+##### 关键、流程分析
+##### 源码分析
+##### 小结
+#### get
+##### 关键、流程分析
+##### 源码分析
+##### 小结
+#### remove
+##### 关键、流程分析
+##### 源码分析
+##### 小结
+#### resize
+##### 关键、流程分析
+##### 源码分析
+##### 小结
