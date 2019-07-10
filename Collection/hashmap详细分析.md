@@ -263,7 +263,7 @@
     - 注释翻译（发现注释非常重要核心思想和注意事项）
       - 初始化或者2倍tables的容量，如果为null，根据字段阈值中保存的初始化目标容量进行分配，否则因为我们使用2次幂进行扩展，bin中的每一个节点必须停留在相同的位置上或者以2进制最高位的移动（原索引+table.length）
     ```java
-        /**
+      /**
        * Initializes or doubles table size.  If null, allocates in
        * accord with initial capacity target held in field threshold.
        * Otherwise, because we are using power-of-two expansion, the
@@ -383,61 +383,67 @@ put 调用 putval()执行put操作
        - 插入回调（为实现，在linkhashmap中有实现）
  - resize
 #### get
-##### 关键、流程分析
+##### 流程分析
 ##### 源码分析
 - get方法
   ```java
-  /**
-   * Returns the value to which the specified key is mapped,
-   * or {@code null} if this map contains no mapping for the key.
-   *
-   * <p>More formally, if this map contains a mapping from a key
-   * {@code k} to a value {@code v} such that {@code (key==null ? k==null :
-   * key.equals(k))}, then this method returns {@code v}; otherwise
-   * it returns {@code null}.  (There can be at most one such mapping.)
-   *
-   * <p>A return value of {@code null} does not <i>necessarily</i>
-   * indicate that the map contains no mapping for the key; it's also
-   * possible that the map explicitly maps the key to {@code null}.
-   * The {@link #containsKey containsKey} operation may be used to
-   * distinguish these two cases.
-   *
-   * @see #put(Object, Object)
-   */
-   public V get(Object key) {
-     Node<K,V> e;
-     return (e = getNode(hash(key), key)) == null ? null : e.value;
-   }
-   /**
-   * Implements Map.get and related methods.
-   *
-   * @param hash hash for key
-   * @param key the key
-   * @return the node, or null if none
-   */
-   final Node<K,V> getNode(int hash, Object key) {
-        Node<K,V>[] tab; Node<K,V> first, e;int n; K k;
-        if ((tab = table) != null && (n = tab.length) > 0 &&
-            (first = tab[(n - 1) & hash]) != null) {
-            if (first.hash == hash && // always check first node
-                ((k = first.key) == key || (key != null && key.equals(k))))
-                return first;
-            if ((e = first.next) != null) {
-              if (first instanceof TreeNode)
-                  return ((TreeNode<K,V>)first).getTreeNode(hash, key);
-              do {
-                  if (e.hash == hash &&
-                      ((k = e.key) == key || (key != null && key.equals(k))))
-                      return e;
-              } while ((e = e.next) != null);
-          }
-      }
-      return null;
-  }
+    /**
+     * Returns the value to which the specified key is mapped,
+     * or {@code null} if this map contains no mapping for the key.
+     *
+     * <p>More formally, if this map contains a mapping from a key
+     * {@code k} to a value {@code v} such that {@code (key==null ? k==null :
+     * key.equals(k))}, then this method returns {@code v}; otherwise
+     * it returns {@code null}.  (There can be at most one such mapping.)
+     *
+     * <p>A return value of {@code null} does not <i>necessarily</i>
+     * indicate that the map contains no mapping for the key; it's also
+     * possible that the map explicitly maps the key to {@code null}.
+     * The {@link #containsKey containsKey} operation may be used to
+     * distinguish these two cases.
+     *
+     * @see #put(Object, Object)
+     */
+     public V get(Object key) {
+       Node<K,V> e;
+       return (e = getNode(hash(key), key)) == null ? null : e.value;
+     }
+     /**
+     * Implements Map.get and related methods.
+     *
+     * @param hash hash for key
+     * @param key the key
+     * @return the node, or null if none
+     */
+     final Node<K,V> getNode(int hash, Object key) {
+          Node<K,V>[] tab; Node<K,V> first, e;int n; K k;
+          //判断table、n、first是否为空
+          if ((tab = table) != null && (n = tab.length) > 0 &&
+              (first = tab[(n - 1) & hash]) != null) {
+              if (first.hash == hash && // always check first node
+                  ((k = first.key) == key || (key != null && key.equals(k))))
+                  return first;
+              //从链表或者红黑树查找
+              if ((e = first.next) != null) {
+                //红黑树查找
+                if (first instanceof TreeNode)
+                    return ((TreeNode<K,V>)first).getTreeNode(hash, key);
+                //链表查找
+                do {
+                    if (e.hash == hash &&
+                        ((k = e.key) == key || (key != null && key.equals(k))))
+                        return e;
+                } while ((e = e.next) != null);
+            }
+        }
+        return null;
+    }
   ```
 ##### 小结
+- get方法比较简单没有什么复杂的逻辑，基本就是判空，不在tables、链表、红黑树查找相应的节点
+
 #### remove
-##### 关键、流程分析
+##### 流程分析
 ##### 源码分析
   - remove
     ```java
@@ -468,15 +474,21 @@ put 调用 putval()执行put操作
       final Node<K,V> removeNode(int hash, Object key,Object value,
                                  boolean matchValue, boolean movable) {
         Node<K,V>[] tab; Node<K,V> p; int n, index;
+        //判断table、n、p是否为空
         if ((tab = table) != null && (n = tab.length) > 0 &&
             (p = tab[index = (n - 1) & hash]) != null) {
             Node<K,V> node = null, e; K k; V v;
+            //依次判断hash、key地址、key值是否相等
+            //node暂存之后用于删除
             if (p.hash == hash &&
                 ((k = p.key) == key || (key != null && key.equals(k))))
                 node = p;
+            //存于链表或者红黑树中
             else if ((e = p.next) != null) {
+              //红黑树中查找
               if (p instanceof TreeNode)
                   node = ((TreeNode<K,V>)p).getTreeNode(hash, key);
+              //链表中查找
               else {
                   do {
                       if (e.hash == hash &&
@@ -485,6 +497,7 @@ put 调用 putval()执行put操作
                               node = e;
                               break;
                             }
+                            //保存前一个节点用于删除
                             p = e;
                           } while ((e = e.next) != null);
                         }
