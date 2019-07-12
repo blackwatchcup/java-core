@@ -29,6 +29,7 @@
 >Serializable：序列化
 
 ![继承图](hashmap详细分析.assets/hashmap详细分析-63821dc9.png)
+11111
 
 ### hashmap 储存结构
 
